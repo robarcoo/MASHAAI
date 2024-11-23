@@ -1,4 +1,4 @@
-package com.example.mashaai.ui.theme
+package com.example.mashaai.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build
