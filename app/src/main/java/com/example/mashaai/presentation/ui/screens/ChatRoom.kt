@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,30 +23,32 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.data.KtorWebsocketClient
+import com.example.data.MessageRepository
 import com.example.domain.models.Message
 import com.example.mashaai.R
+import com.example.mashaai.viewmodels.ChatViewModel
+import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun ChatRoomHeader() {
+    val viewModel = ChatViewModel(repository = MessageRepository(socketClient = KtorWebsocketClient()))
     val text = remember { mutableStateOf("") }
     val interactionSource = remember { MutableInteractionSource() }
     Scaffold(
@@ -77,10 +78,12 @@ fun ChatRoomHeader() {
                         singleLine = false,
                         visualTransformation = VisualTransformation.None,
                         interactionSource = interactionSource,
-                        trailingIcon = { Icon(
-                            Icons.AutoMirrored.Default.Send,
-                            contentDescription = "Отправить сообщение"
-                        )
+                        trailingIcon = { IconButton(onClick = { viewModel.sendMessage(text.value) }) {
+                            Icon(
+                                Icons.AutoMirrored.Default.Send,
+                                contentDescription = "Отправить сообщение"
+                            )
+                        }
                         },
                         placeholder = { Text("Напиши, что хочешь") },
                         colors = TextFieldDefaults.colors(
@@ -99,22 +102,25 @@ fun ChatRoomHeader() {
         }
 
     ) { innerPadding ->
-        ChatRoomScreen(innerPadding)
+        ChatRoomScreen(innerPadding, viewModel)
     }
 }
 
+
+
 @Composable
-fun ChatRoomScreen(innerPadding: PaddingValues) {
-    val messages = listOf(
-        Message( "Тестовое сообщение Тестовое сообщение Тестовое сообщение"),
-        Message( "Тестовое сообщение", isBotAnswer = false),
-        Message( "Тестовое сообщение"),
-        Message( "Тестовое сообщение Тестовое сообщение Тестовое сообщение", isBotAnswer = false),
-        Message( "Тест", isBotAnswer = false),
-        Message( "Тест")
-    )
+fun ChatRoomScreen(innerPadding: PaddingValues, viewModel: ChatViewModel) {
+    val state by viewModel.state.collectAsState()
+
+    runCatching {
+        Json.decodeFromString<Message>(state)
+    }.onSuccess {
+        viewModel.messages += Message(it.message, isRead = false)
+    }
+
+
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
-        items(items = messages) { message ->
+        items(items = viewModel.messages) { message ->
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .padding(

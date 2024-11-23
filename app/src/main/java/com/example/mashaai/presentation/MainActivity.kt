@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import com.example.mashaai.presentation.ui.screens.ChatRoomHeader
 import com.example.mashaai.presentation.ui.theme.MASHAAITheme
 
 class MainActivity : ComponentActivity() {
@@ -15,9 +16,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MASHAAITheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
-                }
+                ChatRoomHeader()
             }
         }
     }
