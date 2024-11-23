@@ -8,5 +8,6 @@ data class ChatInfo(
 
 data class Message(
     val message: String,
-    val isRead : Boolean
+    val isBotAnswer : Boolean = true,
+    val isRead : Boolean = true
 )
