@@ -26,7 +26,7 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
     fun sendMessage(message : String) {
         viewModelScope.launch {
             messages.add(Message(message, false))
-            repository.sendMessage(message)
+            repository.sendMessage(Message(message, false))
         }
     }
 

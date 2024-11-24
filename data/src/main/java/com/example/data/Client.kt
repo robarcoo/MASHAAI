@@ -1,12 +1,14 @@
 package com.example.data
 
 import android.util.Log
+import com.example.domain.models.Message
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocketSession
+import io.ktor.client.request.url
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
@@ -28,6 +30,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.util.concurrent.TimeUnit
 
 
@@ -49,7 +53,7 @@ private val client = HttpClient(OkHttp) {
     install(WebSockets)
 }
     companion object {
-        private const val url = "wss://echo.websocket.in"
+        private const val url = "wss://echo.websocket.org/.sse"
         private const val RECONNECT_DELAY = 10_000L
         private const val PING_INTERVAL = 5_000L
         private const val TAG = "EVChargingWebSocketClient"
@@ -76,8 +80,9 @@ private val client = HttpClient(OkHttp) {
                     "Connecting to websocket at $url..."
                 )
 
-                session = client.webSocketSession(
-                    url)
+                session = client.webSocketSession {
+                    url("wss://echo.websocket.org")
+                }
 
 
                 Log.d(
@@ -134,13 +139,15 @@ private val client = HttpClient(OkHttp) {
         session = null
     }
 
-    suspend fun send(message: String) {
+    suspend fun send(message: Message) {
         Log.d(
             TAG,
             "Sending message: $message"
         )
 
-        session?.send(Frame.Text(message))
+        session?.outgoing?.send(
+            Frame.Text(Json.encodeToString(message))
+        )
     }
 
 }
