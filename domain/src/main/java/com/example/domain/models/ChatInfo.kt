@@ -12,7 +12,7 @@ data class ChatInfo(
     val image: Int? = null,
     val name : String,
     @ColumnInfo(name="message_list")
-    val messageList: List<Message>
+    val messageList: MutableList<Message>
 )
 
 

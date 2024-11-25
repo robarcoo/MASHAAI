@@ -29,7 +29,7 @@ val dataModule = module {
     }
 
     single<MessageRepository> {
-        MessageRepository(remoteDataSource = get())
+        MessageRepository(remoteDataSource = get(), localChatService = get())
     }
 
     single<RemoteDataSource<Message>> {

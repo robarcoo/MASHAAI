@@ -1,6 +1,7 @@
 package com.example.data
 
 import com.example.domain.datasource.RemoteDataSource
+import com.example.domain.models.ChatInfo
 import com.example.domain.models.DataAnswer
 import com.example.domain.models.Message
 import com.example.domain.models.Result
@@ -13,7 +14,8 @@ import kotlinx.serialization.SerializationException
 
 
 
-class MessageRepository(private val remoteDataSource: RemoteDataSource<Message>)  {
+class MessageRepository(private val remoteDataSource: RemoteDataSource<Message>,
+                        private val localChatService: LocalChatService)  {
 
     fun sendQuestion(message : String) : Flow<Result> {
         return flow {
@@ -32,5 +34,21 @@ class MessageRepository(private val remoteDataSource: RemoteDataSource<Message>)
                 }
             }
         }
+    }
+
+    fun getChatList() : Flow<List<ChatInfo>> {
+        return localChatService.getChatList()
+    }
+
+    fun getChat(id : Int) : Flow<ChatInfo> {
+        return localChatService.getChat(id)
+    }
+
+    fun createChat(chatInfo: ChatInfo) {
+        localChatService.addChat(chatInfo)
+    }
+
+    fun createMessage(message: Message) {
+        localChatService.addMessage(message)
     }
 }
