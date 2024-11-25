@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.MessageRepository
 import com.example.domain.models.Message
+import com.example.domain.models.TestServer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +27,7 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
     fun sendMessage(message : String) {
         viewModelScope.launch {
             messages.add(Message(message, false))
-            repository.sendMessage(Message(message, false))
+            repository.sendMessage(message)
         }
     }
 

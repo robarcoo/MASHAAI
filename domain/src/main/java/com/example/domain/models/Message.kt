@@ -6,13 +6,12 @@ import androidx.room.PrimaryKey
 
 
 @Entity
-data class ChatInfo(
+data class Message(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
-    val image: Int? = null,
-    val name : String,
-    @ColumnInfo(name="message_list")
-    val messageList: List<Message>
+    @ColumnInfo(name = "chat_id")
+    var chatId : Int,
+    val message: String,
+    @ColumnInfo(name = "is_bot_answer")
+    val isBotAnswer : Boolean = true
 )
-
-
