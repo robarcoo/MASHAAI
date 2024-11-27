@@ -3,18 +3,16 @@ package com.example.mashaai.presentation.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,56 +32,52 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.models.ChatInfo
 import com.example.domain.models.Message
 import com.example.mashaai.R
+import com.example.mashaai.viewmodels.ChatViewModel
+import org.koin.androidx.compose.getViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatListScreen(innerPadding: PaddingValues) {
+fun ChatList(innerPadding: PaddingValues, viewModel: ChatViewModel) {
     var text by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(false) }
-    val testData = listOf(ChatInfo(
-        name = "Маша",
-        messageList = List(10) { Message("Test Message", false, isRead = false) }),
-        ChatInfo(
-            name = "Маша",
-            messageList = List(10) { Message("Test Message Test Message Test Message Test Message", false) }))
-
+    val chatList = viewModel.chatListState.collectAsState()
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
         item {
-            SearchBar(modifier = Modifier.fillMaxWidth().padding(
-                start = 16.dp,
-                end = 16.dp,
-                bottom = 8.dp),
-                query = text, onQueryChange = { text = it } ,
+            SearchBar(modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 8.dp
+                ),
+                query = text, onQueryChange = { text = it },
                 onSearch = { active = false }, active = active,
                 onActiveChange = { active = it },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null)},
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 placeholder = { Text("Поиск", fontSize = 14.sp) }) {
 
             }
         }
-        items(testData) { chat ->
+        items(chatList.value) { chat ->
             ChatItem(
                 name = chat.name,
-                lastMessage = chat.messageList[chat.messageList.size - 1].message,
-                unreadMessagesCount = chat.messageList.count { !it.isRead })
+                lastMessage = chat.messageList[chat.messageList.size - 1].message
+            )
         }
     }
 }
 
 @Composable
-fun ChatItem(image: Int = R.drawable.ic_default_avatar, name : String, lastMessage : String, unreadMessagesCount : Int) {
+fun ChatItem(image: Int = R.drawable.ic_default_avatar, name : String, lastMessage : String) {
     Row(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 8.dp),
@@ -105,35 +100,29 @@ fun ChatItem(image: Int = R.drawable.ic_default_avatar, name : String, lastMessa
                     maxLines = 1)
             }
         }
-        if (unreadMessagesCount > 0) {
-            Text(unreadMessagesCount.toString(),
-                modifier = Modifier
-                    .padding(16.dp)
-                    .drawBehind {
-                        drawCircle(
-                            color = Red,
-                            radius = this.size.maxDimension
-                        )
-                    },
-                fontSize = 10.sp)
-        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
-fun ChatListTopBar() {
+fun ChatListScreen() {
+    val viewModel: ChatViewModel = getViewModel()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold(
         modifier = Modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            ,
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Чаты") },
-                actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                navigationIcon = {
+                    IconButton(onClick = { viewModel.createChat(
+                        ChatInfo(
+                            viewModel.chatListState.value.maxBy { it.id }.id + 1,
+                            name = "Маша",
+                            messageList = mutableListOf()
+                        )
+                    ) }) {
+                        Icons.Filled.Add
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -144,7 +133,7 @@ fun ChatListTopBar() {
         }
 
     ) { innerPadding ->
-        ChatListScreen(innerPadding)
+        ChatList(innerPadding, viewModel)
     }
 }
 

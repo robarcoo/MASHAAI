@@ -37,18 +37,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.data.KtorWebsocketClient
 import com.example.data.MessageRepository
+import com.example.domain.models.ChatInfo
 import com.example.domain.models.Message
 import com.example.mashaai.R
 import com.example.mashaai.viewmodels.ChatViewModel
 import kotlinx.serialization.json.Json
+import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
-fun ChatRoomHeader() {
-    val viewModel = ChatViewModel(repository = MessageRepository(socketClient = KtorWebsocketClient()))
+fun ChatRoomScreen(id : Int) {
+    val viewModel : ChatViewModel = getViewModel()
+    val chatInfo = viewModel.chatListState.collectAsState().value[id]
     val text = remember { mutableStateOf("") }
     val interactionSource = remember { MutableInteractionSource() }
     Scaffold(
@@ -78,7 +79,10 @@ fun ChatRoomHeader() {
                         singleLine = false,
                         visualTransformation = VisualTransformation.None,
                         interactionSource = interactionSource,
-                        trailingIcon = { IconButton(onClick = { viewModel.sendMessage(text.value) }) {
+                        trailingIcon = { IconButton(onClick = {
+                            viewModel.sendMessage(chatInfo, text.value)
+                            text.value = ""
+                        }) {
                             Icon(
                                 Icons.AutoMirrored.Default.Send,
                                 contentDescription = "Отправить сообщение"
@@ -102,25 +106,16 @@ fun ChatRoomHeader() {
         }
 
     ) { innerPadding ->
-        ChatRoomScreen(innerPadding, viewModel)
+        ChatRoomMessageList(innerPadding, chatInfo)
     }
 }
 
 
 
 @Composable
-fun ChatRoomScreen(innerPadding: PaddingValues, viewModel: ChatViewModel) {
-    val state by viewModel.state.collectAsState()
-
-    runCatching {
-        Json.decodeFromString<Message>(state)
-    }.onSuccess {
-        viewModel.messages += Message(it.message, isRead = false)
-    }
-
-
+fun ChatRoomMessageList(innerPadding: PaddingValues, chatInfo : ChatInfo) {
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
-        items(items = viewModel.messages) { message ->
+        items(items = chatInfo.messageList) { message ->
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .padding(

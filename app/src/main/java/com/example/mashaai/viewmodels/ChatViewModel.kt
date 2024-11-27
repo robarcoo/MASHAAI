@@ -18,8 +18,6 @@ import kotlinx.coroutines.launch
 
 class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
 
-    private var _currentMessageState = MutableStateFlow<List<Message>>(emptyList())
-    val currentMessageState : StateFlow<List<Message>> = _currentMessageState.asStateFlow()
     private var _chatListState = MutableStateFlow<List<ChatInfo>>(emptyList())
     val chatListState : StateFlow<List<ChatInfo>> = _chatListState.asStateFlow()
     private var _isError = MutableStateFlow(false)
@@ -61,7 +59,7 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
         }
 
 
-    fun saveMessage(chatInfo: ChatInfo, message : String, isBot : Boolean) {
+    private fun saveMessage(chatInfo: ChatInfo, message : String, isBot : Boolean) {
         repository.createMessage(Message(id = chatInfo.messageList.maxBy { it.id }.id + 1, chatId = chatInfo.id, message = message, isBotAnswer = isBot))
     }
 
@@ -82,9 +80,9 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
                         is Result.Success<*> -> {
                             val finalData = it.value as String
                             saveMessage(chatInfo, finalData, true)
-                            _chatListState.update { chatlist ->
-                                chatlist.apply {
-                                    chatlist[chatlist.indexOf(chatInfo)].messageList.add(
+                            _chatListState.update { chatList ->
+                                chatList.apply {
+                                    chatList[chatList.indexOf(chatInfo)].messageList.add(
                                         Message(
                                             chatId = chatInfo.id,
                                             message = finalData,
