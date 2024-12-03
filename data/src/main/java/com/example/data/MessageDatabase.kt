@@ -3,6 +3,7 @@ package com.example.data
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -24,8 +25,8 @@ interface MessageDao {
     fun getChatInfoList() : Flow<List<ChatInfo>>
     @Query("SELECT * FROM ChatInfo WHERE ChatInfo.id == (:id)")
     fun getChatInfo(id: Int) : Flow<ChatInfo>
-    @Insert(entity = ChatInfo::class)
+    @Insert(entity = ChatInfo::class, onConflict = OnConflictStrategy.REPLACE)
     fun insertChat(chat : ChatInfo)
-    @Insert(entity = Message::class)
+    @Insert(entity = Message::class, onConflict = OnConflictStrategy.REPLACE)
     fun insertMessage(message : Message)
 }

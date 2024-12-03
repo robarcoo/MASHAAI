@@ -21,14 +21,14 @@ val dataModule = module {
     }
 
     single {
-        provideDB(context = androidContext())
+        provideMessageDatabase(context = androidContext())
     }
 
     single {
         provideDao(database = get())
     }
 
-    single<MessageRepository> {
+    single {
         MessageRepository(remoteDataSource = get(), localChatService = get())
     }
 
@@ -36,7 +36,7 @@ val dataModule = module {
         MessageService(client = get())
     }
 
-    single<LocalDataSource> {
+    single {
         LocalChatService(messageDao = get())
     }
 }
@@ -45,8 +45,8 @@ fun provideHttpClient(): HttpClient {
     return client
 }
 
-fun provideDB(context : Context) : MessageDatabase {
-    return Room.databaseBuilder(context, MessageDatabase::class.java, "database.db")
+fun provideMessageDatabase(context : Context) : MessageDatabase {
+    return Room.databaseBuilder(context, MessageDatabase::class.java, "database1.db")
         .fallbackToDestructiveMigration()
         .build()
 }
@@ -54,5 +54,7 @@ fun provideDB(context : Context) : MessageDatabase {
 fun provideDao(database: MessageDatabase) : MessageDao {
     return database.messageDao()
 }
+
+
 
 

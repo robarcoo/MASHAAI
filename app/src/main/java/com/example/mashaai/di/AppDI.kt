@@ -6,7 +6,8 @@ import org.koin.dsl.module
 
 
 val appModule = module {
+
     viewModel<ChatViewModel> {
-        ChatViewModel(get())
+        ChatViewModel(repository = get())
     }
 }

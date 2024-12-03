@@ -38,6 +38,7 @@ class MessageRepository(private val remoteDataSource: RemoteDataSource<Message>,
 
     fun getChatList() : Flow<List<ChatInfo>> {
         return localChatService.getChatList()
+
     }
 
     fun getChat(id : Int) : Flow<ChatInfo> {
