@@ -10,7 +10,7 @@ import io.ktor.client.statement.HttpResponse
 
 class MessageService(private val client : HttpClient) : RemoteDataSource<Message> {
 
-    private val SEND_QUESTION = "question/get"
+    private val SEND_QUESTION = "get"
 
     override suspend fun sendQuestion(message: String): HttpResponse {
         return client.get("$SEND_QUESTION?question=$message")

@@ -2,7 +2,10 @@ package com.example.mashaai.presentation.ui.screens
 
 
 import android.util.Log
+import androidx.activity.ComponentActivity
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -53,17 +57,20 @@ import androidx.compose.ui.unit.sp
 import com.example.domain.models.ChatInfo
 import com.example.domain.models.Message
 import com.example.mashaai.R
+import com.example.mashaai.presentation.navigation.LocalNavController
+import com.example.mashaai.presentation.navigation.Route
 import com.example.mashaai.presentation.ui.theme.Blue
 import com.example.mashaai.presentation.ui.theme.Gray
 import com.example.mashaai.presentation.ui.theme.LightGray
 import com.example.mashaai.viewmodels.ChatViewModel
 import org.koin.androidx.compose.getViewModel
-
+import org.koin.androidx.compose.koinViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatList(innerPadding: PaddingValues, viewModel: ChatViewModel) {
+    val navController = LocalNavController.current!!
     var text by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(false) }
     val chatList = viewModel.chatListState.collectAsState()
@@ -99,16 +106,19 @@ fun ChatList(innerPadding: PaddingValues, viewModel: ChatViewModel) {
                 name = chat.name,
                 image = chat.image ?: R.drawable.ic_default_avatar,
                 lastMessage = chat.messageList[chat.messageList.size - 1].message
-            )
+            ) {
+                navController.navigate(Route.ChatRoomScreen.withArgs(chat.id.toString()))
+            }
         }
     }
 }
 
 @Composable
-fun ChatItem(image: Int, name : String, lastMessage : String) {
+fun ChatItem(image: Int, name : String, lastMessage : String, onClick : () -> Unit) {
     Row(modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 8.dp),
+        .padding(horizontal = 8.dp)
+        .clickable(onClick = onClick),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically) {
         Row(modifier = Modifier
@@ -140,7 +150,7 @@ fun ChatItem(image: Int, name : String, lastMessage : String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatListScreen() {
-    val viewModel: ChatViewModel = getViewModel()
+    val viewModel: ChatViewModel = koinViewModel<ChatViewModel>(viewModelStoreOwner = LocalContext.current as ComponentActivity)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val chatList = viewModel.chatListState.collectAsState()
     val chatId = if (chatList.value.isNotEmpty()) {
@@ -166,10 +176,7 @@ fun ChatListScreen() {
                             messageList = mutableListOf(
                                 Message(id = 0,
                                     chatId = chatId,
-                                    message = """Привет, что ты хочешь у меня спросить?
-                                Часто задаваемые вопросы:
-                                Как получить общежитие?
-                                Где находятся здания университета?"""
+                                    message = "Привет, что ты хочешь у меня спросить?\nЧасто задаваемые вопросы:\nКак получить общежитие?\nГде находятся здания университета?"
                                     )
                             )
                         )

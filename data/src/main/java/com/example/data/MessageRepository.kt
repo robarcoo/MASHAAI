@@ -5,6 +5,7 @@ import com.example.domain.models.ChatInfo
 import com.example.domain.models.DataAnswer
 import com.example.domain.models.Message
 import com.example.domain.models.Result
+import com.google.gson.Gson
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.Flow
@@ -23,7 +24,7 @@ class MessageRepository(private val remoteDataSource: RemoteDataSource<Message>,
             when (response.status) {
                 HttpStatusCode.OK -> {
                     try {
-                        emit(Result.Success(value = response.body<DataAnswer<Message>>()))
+                        emit(Result.Success(value = response.body<String>()))
                     } catch (e: SerializationException) {
                         emit(
                             Result.Error(value = Exception("error"))
@@ -49,7 +50,7 @@ class MessageRepository(private val remoteDataSource: RemoteDataSource<Message>,
         localChatService.addChat(chatInfo)
     }
 
-    fun createMessage(message: Message) {
-        localChatService.addMessage(message)
+    fun createMessage(message: Message) : Long {
+        return localChatService.addMessage(message)
     }
 }

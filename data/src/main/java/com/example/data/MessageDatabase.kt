@@ -13,7 +13,7 @@ import com.example.domain.models.Message
 import kotlinx.coroutines.flow.Flow
 
 @Database(entities = [ChatInfo::class,
-    Message::class], version = 4)
+    Message::class], version = 5)
 @TypeConverters(MessageConverter::class)
 abstract class MessageDatabase : RoomDatabase() {
     abstract fun messageDao() : MessageDao
@@ -28,5 +28,5 @@ interface MessageDao {
     @Insert(entity = ChatInfo::class, onConflict = OnConflictStrategy.REPLACE)
     fun insertChat(chat : ChatInfo)
     @Insert(entity = Message::class, onConflict = OnConflictStrategy.REPLACE)
-    fun insertMessage(message : Message)
+    fun insertMessage(message : Message) : Long
 }

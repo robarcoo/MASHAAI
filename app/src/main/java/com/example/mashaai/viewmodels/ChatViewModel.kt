@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.MessageRepository
 import com.example.domain.models.ChatInfo
 import com.example.domain.models.Message
-import com.example.domain.models.Response
 import com.example.domain.models.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +43,6 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
                     val finalData = result as? List<*>
                     if (finalData != null) {
                         _chatListState.update {
-                            Log.d("CREATE", finalData.toString())
                             finalData.filterIsInstance<ChatInfo>()
                         }
                     }
@@ -53,12 +51,30 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
         }
 
 
-    private fun saveMessage(chatInfo: ChatInfo, message : String, isBot : Boolean) {
-        repository.createMessage(Message(id = chatInfo.messageList.maxBy { it.id }.id + 1, chatId = chatInfo.id, message = message, isBotAnswer = isBot))
-    }
+    private fun saveMessage(chatInfo: ChatInfo, message : String, isBot : Boolean){
+        Log.d("MASHA", message)
+        viewModelScope.launch(Dispatchers.IO) {
+            val newId = repository.createMessage(Message(
+                id = 0,
+                chatId = chatInfo.id,
+                message = message,
+                isBotAnswer = isBot
+            )
+            ).toInt()
+
+            val temp = _chatListState.value.toMutableList()
+            Log.d("MASHA", temp.toString())
+            temp.map { if (it.id == chatInfo.id) {
+                it.messageList += Message(newId, chatInfo.id, message, isBot)
+            } }
+            Log.d("MASHA", temp.toString())
+            _chatListState.update {
+                temp
+            }
+        }
+        }
 
     fun createChat(chatInfo: ChatInfo) {
-        Log.d("CREATE", chatInfo.image.toString())
         viewModelScope.launch(Dispatchers.IO) {
             repository.createChat(chatInfo)
             val temp = _chatListState.value.toMutableList()
@@ -82,17 +98,6 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
                         is Result.Success<*> -> {
                             val finalData = it.value as String
                             saveMessage(chatInfo, finalData, true)
-                            _chatListState.update { chatList ->
-                                chatList.apply {
-                                    chatList[chatList.indexOf(chatInfo)].messageList.add(
-                                        Message(
-                                            chatId = chatInfo.id,
-                                            message = finalData,
-                                            isBotAnswer = true
-                                        )
-                                    )
-                                }
-                            }
                             _isError.update { false }
                             _isLoading.update { false }
                         }
@@ -102,6 +107,8 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
                         is Result.Loading -> {
                             _isLoading.update { true }
                         }
+
+                        else -> {}
                     }
                 }
         }

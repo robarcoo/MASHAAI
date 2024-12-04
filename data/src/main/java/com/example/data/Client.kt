@@ -34,7 +34,7 @@ val client =  HttpClient(Android) {
         ))
     }
     install(DefaultRequest) {
-        url("http://107.173.25.219/question/")
+        url("http://107.173.25.219/test/")
         header(HttpHeaders.ContentType, ContentType.Application.Json)
     }
     install(HttpTimeout) {

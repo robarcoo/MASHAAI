@@ -33,7 +33,7 @@ fun MainNavigationController(
             composable(route = Route.ChatRoomScreen.path + "/{id}",
                 arguments = listOf(navArgument("id") {
                     type = NavType.IntType
-                    defaultValue = false
+                    defaultValue = 0
                     nullable = false
                 })) { entry ->
                 entry.arguments?.getInt("id").let { id ->

@@ -32,14 +32,14 @@ class MessageConverter {
     }
 
     @TypeConverter
-    fun fromMessageList(messages: MutableList<Message>?): String? {
-        val type = object : TypeToken<MutableList<Message>?>() {}.type
+    fun fromMessageList(messages: List<Message>?): String? {
+        val type = object : TypeToken<List<Message>?>() {}.type
         return Gson().toJson(messages, type)
     }
 
     @TypeConverter
-    fun toMessageList(messageListString: String?): MutableList<Message>? {
-        val type = object : TypeToken<MutableList<Message>?>() {}.type
+    fun toMessageList(messageListString: String?): List<Message>? {
+        val type = object : TypeToken<List<Message>?>() {}.type
         return Gson().fromJson(messageListString, type)
     }
 }

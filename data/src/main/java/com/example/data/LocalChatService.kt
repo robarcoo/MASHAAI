@@ -20,7 +20,7 @@ class LocalChatService(private val messageDao: MessageDao) : LocalDataSource {
         return messageDao.getChatInfoList()
     }
 
-    override fun addMessage(message: Message) {
-        messageDao.insertMessage(message)
+    override fun addMessage(message: Message) : Long {
+        return messageDao.insertMessage(message)
     }
 }

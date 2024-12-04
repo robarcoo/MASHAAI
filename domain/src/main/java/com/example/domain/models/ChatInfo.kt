@@ -13,7 +13,7 @@ data class ChatInfo(
     val image: Int? = null,
     val name : String,
     @ColumnInfo(name="message_list")
-    val messageList: MutableList<Message>
+    var messageList: List<Message> = emptyList()
 )
 
 

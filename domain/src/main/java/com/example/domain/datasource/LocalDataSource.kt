@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface LocalDataSource {
     fun getChatList() : Flow<List<ChatInfo>>
     fun getChat(id : Int) : Flow<ChatInfo>
-    fun addMessage(message: Message)
+    fun addMessage(message: Message) : Long
     fun addChat(chat: ChatInfo)
 }
 

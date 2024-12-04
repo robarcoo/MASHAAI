@@ -46,7 +46,7 @@ fun provideHttpClient(): HttpClient {
 }
 
 fun provideMessageDatabase(context : Context) : MessageDatabase {
-    return Room.databaseBuilder(context, MessageDatabase::class.java, "database1.db")
+    return Room.databaseBuilder(context, MessageDatabase::class.java, "database2.db")
         .fallbackToDestructiveMigration()
         .build()
 }
