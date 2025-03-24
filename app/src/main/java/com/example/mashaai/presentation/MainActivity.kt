@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.Surface
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -22,7 +23,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             MASHAAITheme {
-                MainNavigationController(navController = navController)
+                Surface {
+                    MainNavigationController(navController = navController)
+                }
             }
         }
 

@@ -73,6 +73,7 @@ fun ChatList(innerPadding: PaddingValues, viewModel: ChatViewModel) {
     val navController = LocalNavController.current!!
     var text by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(false) }
+    val currentItem = viewModel.currentChat.collectAsState()
     val chatList = viewModel.chatListState.collectAsState()
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
         item {
@@ -107,7 +108,8 @@ fun ChatList(innerPadding: PaddingValues, viewModel: ChatViewModel) {
                 image = chat.image ?: R.drawable.ic_default_avatar,
                 lastMessage = chat.messageList[chat.messageList.size - 1].message
             ) {
-                navController.navigate(Route.ChatRoomScreen.withArgs(chat.id.toString()))
+                viewModel.updateCurrentChat(chat.id)
+                navController.navigate(Route.ChatRoomScreen.withArgs(currentItem.value.toString()))
             }
         }
     }

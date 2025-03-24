@@ -1,5 +1,6 @@
 package com.example.mashaai.presentation.ui.screens
 
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,6 +46,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mashaai.R
+import com.example.mashaai.presentation.navigation.LocalNavController
+import com.example.mashaai.presentation.navigation.Route
 import com.example.mashaai.presentation.ui.theme.Blue
 import com.example.mashaai.presentation.ui.theme.LightGray
 import com.example.mashaai.presentation.ui.theme.White
@@ -53,10 +56,14 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatRoomScreen(id : Int) {
+fun ChatRoomScreen() {
+    val navController = LocalNavController.current!!
     val viewModel : ChatViewModel = koinViewModel<ChatViewModel>(viewModelStoreOwner = LocalContext.current as ComponentActivity)
     val chatList = viewModel.chatListState.collectAsState()
-    val chatInfo = chatList.value.find { it.id == id } ?: throw IllegalStateException()
+    val hasError = viewModel.isError.collectAsState()
+    val id = viewModel.currentChat.collectAsState()
+    val isLoading = viewModel.isLoading.collectAsState()
+    val chatInfo = chatList.value.find { it.id == id.value } ?: throw IllegalStateException()
     val text = remember { mutableStateOf("") }
     val interactionSource = remember { MutableInteractionSource() }
     Scaffold(
@@ -66,7 +73,14 @@ fun ChatRoomScreen(id : Int) {
                 color = Blue
             ) },
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
-                navigationIcon = { Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Вернуться к списку диалогов") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "Вернуться к списку диалогов"
+                        )
+                    }
+                },
                 actions = { Image(
                     painter = painterResource(id = chatInfo.image ?: R.drawable.ic_default_avatar),
                     contentDescription = "Аватар чат-бота",
@@ -74,8 +88,14 @@ fun ChatRoomScreen(id : Int) {
             )
         },
         bottomBar = {
+            Column() {
+            if (isLoading.value) {
+                Text("Маша пишет...", Modifier.padding(
+                    horizontal = 30.dp),
+                    fontFamily = FontFamily(Font(R.font.lack_regular)))
+            }
             Box(contentAlignment = Alignment.CenterEnd,
-                modifier = Modifier.padding(16.dp)) {
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp)) {
                 BasicTextField(
                     value = text.value, onValueChange = { text.value = it },
                     interactionSource = interactionSource,
@@ -83,30 +103,37 @@ fun ChatRoomScreen(id : Int) {
                         .clip(RoundedCornerShape(71.dp))
                         .background(Color.Gray)
                         .fillMaxWidth()
-                        .height(40.dp),
+                        .height(45.dp),
                 ) {
                     TextFieldDefaults.DecorationBox(
                         value = text.value,
                         innerTextField = it,
                         enabled = true,
-                        singleLine = false,
+                        singleLine = true,
                         visualTransformation = VisualTransformation.None,
                         interactionSource = interactionSource,
-                        trailingIcon = { IconButton(onClick = {
-                            viewModel.sendMessage(chatInfo, text.value)
-                            text.value = ""
-                        }) {
-                            Image(
-                                painterResource(R.drawable.ic_send),
-                                contentDescription = "Отправить сообщение"
-                            )
-                        }
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    viewModel.sendMessage(chatInfo, text.value)
+                                    text.value = ""
+                                },
+                                enabled = text.value.isNotEmpty()
+                            ) {
+                                Image(
+                                    painterResource(R.drawable.ic_send),
+                                    contentDescription = "Отправить сообщение"
+                                )
+                            }
                         },
-                        placeholder = { Text("Напиши, что хочешь",
-                            fontFamily = FontFamily(Font(R.font.lack_regular)),
-                            color = Black,
-                            fontSize = 14.sp
-                        ) },
+                        placeholder = {
+                            Text(
+                                "Напиши, что хочешь",
+                                fontFamily = FontFamily(Font(R.font.lack_regular)),
+                                color = Black,
+                                fontSize = 14.sp
+                            )
+                        },
                         colors = TextFieldDefaults.colors(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
@@ -117,13 +144,18 @@ fun ChatRoomScreen(id : Int) {
                         contentPadding = PaddingValues(vertical = 10.dp, horizontal = 16.dp)
                     )
                 }
+            }
 
             }
             
         }
 
     ) { innerPadding ->
-        ChatRoomMessageList(innerPadding, viewModel, id)
+        ChatRoomMessageList(innerPadding, viewModel, id.value)
+        if (hasError.value) {
+            Toast.makeText(LocalContext.current, "Произошла ошибка", Toast.LENGTH_LONG).show()
+            viewModel.setErrorFalse()
+        }
     }
 }
 
@@ -132,7 +164,6 @@ fun ChatRoomScreen(id : Int) {
 @Composable
 fun ChatRoomMessageList(innerPadding: PaddingValues, viewModel: ChatViewModel, id: Int) {
     val chatList = viewModel.chatListState.collectAsState()
-    val chatInfo = chatList.value.find { it.id == id } ?: throw IllegalStateException()
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -140,7 +171,8 @@ fun ChatRoomMessageList(innerPadding: PaddingValues, viewModel: ChatViewModel, i
                 .weight(1f),
             verticalArrangement = Arrangement.Bottom
         ) {
-            items(items = chatInfo.messageList,
+            val messages = chatList.value.find { it.id == id }?.messageList ?: emptyList()
+            items(items = messages,
                 key = { it.id }) { message ->
                 Row(
                     modifier = Modifier

@@ -2,6 +2,7 @@ package com.example.data
 
 import android.util.Log
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.ProxyBuilder
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -16,11 +17,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.client.engine.android.Android
+import io.ktor.client.engine.http
 import kotlinx.serialization.json.Json
+import java.net.InetSocketAddress
+import java.net.Proxy
 
 
-
-private const val NETWORK_TIME_OUT = 6_0000000L
+private const val NETWORK_TIME_OUT = Long.MAX_VALUE
 
 val client =  HttpClient(Android) {
     install(ContentNegotiation) {
@@ -32,9 +35,10 @@ val client =  HttpClient(Android) {
                 isLenient = true
             }
         ))
+
     }
     install(DefaultRequest) {
-        url("http://107.173.25.219/test/")
+        url("http://85.143.167.11:8000/ask")
         header(HttpHeaders.ContentType, ContentType.Application.Json)
     }
     install(HttpTimeout) {
@@ -53,4 +57,6 @@ val client =  HttpClient(Android) {
             Log.d("HTTP status:", "${response.status.value}")
         }
     }
+
+
 }

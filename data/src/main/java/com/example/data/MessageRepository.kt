@@ -1,5 +1,6 @@
 package com.example.data
 
+import android.util.Log
 import com.example.domain.datasource.RemoteDataSource
 import com.example.domain.models.ChatInfo
 import com.example.domain.models.DataAnswer
@@ -10,9 +11,13 @@ import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 
-
+@Serializable
+data class ServerResponse(
+    val text : String
+)
 
 
 class MessageRepository(private val remoteDataSource: RemoteDataSource<Message>,
@@ -20,19 +25,25 @@ class MessageRepository(private val remoteDataSource: RemoteDataSource<Message>,
 
     fun sendQuestion(message : String) : Flow<Result> {
         return flow {
-            val response = remoteDataSource.sendQuestion(message)
-            when (response.status) {
-                HttpStatusCode.OK -> {
-                    try {
-                        emit(Result.Success(value = response.body<String>()))
-                    } catch (e: SerializationException) {
-                        emit(
-                            Result.Error(value = Exception("error"))
-                        )
+            try {
+                val response = remoteDataSource.sendQuestion(message)
+                Log.d("MASHSHSHA", response.body<String>())
+                when (response.status) {
+                    HttpStatusCode.OK -> {
+                        emit(Result.Success(value = response.body<ServerResponse>()))
+
                     }
-                } else -> {
-                emit(Result.Error(value = Exception("error")))
+
+                    else -> {
+                        emit(Result.Error(value = Exception("error")))
+                    }
                 }
+            } catch (e: Exception) {
+                Log.d("MASHSHSHA", e.toString())
+                emit(
+                    Result.Error(value = Exception("error"))
+                )
+
             }
         }
     }
@@ -50,7 +61,7 @@ class MessageRepository(private val remoteDataSource: RemoteDataSource<Message>,
         localChatService.addChat(chatInfo)
     }
 
-    fun createMessage(message: Message) : Long {
-        return localChatService.addMessage(message)
+    fun updateChat(chatInfo: ChatInfo) {
+        localChatService.updateChat(chatInfo)
     }
 }

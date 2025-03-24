@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.MessageRepository
+import com.example.data.ServerResponse
 import com.example.domain.models.ChatInfo
 import com.example.domain.models.Message
 import com.example.domain.models.Result
@@ -22,6 +23,10 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
 
     private var _chatListState = MutableStateFlow<List<ChatInfo>>(emptyList())
     val chatListState : StateFlow<List<ChatInfo>> = _chatListState.asStateFlow()
+
+    private var _currentChat = MutableStateFlow(0)
+    val currentChat = _currentChat.asStateFlow()
+
     private var _isError = MutableStateFlow(false)
     val isError: StateFlow<Boolean> = _isError.asStateFlow()
 
@@ -30,6 +35,18 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
 
     init {
         getData()
+    }
+
+    fun setErrorFalse() {
+        _isError.update {
+            false
+        }
+    }
+
+    fun updateCurrentChat(id : Int) {
+        _currentChat.update {
+            id
+        }
     }
 
     private fun getData() {
@@ -54,22 +71,26 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
     private fun saveMessage(chatInfo: ChatInfo, message : String, isBot : Boolean){
         Log.d("MASHA", message)
         viewModelScope.launch(Dispatchers.IO) {
-            val newId = repository.createMessage(Message(
-                id = 0,
+            val newMessageList = _chatListState.value.first { it.id == chatInfo.id }.messageList.toMutableList()
+            newMessageList.add(Message(
+                id = chatInfo.messageList.last().id + 1,
                 chatId = chatInfo.id,
                 message = message,
                 isBotAnswer = isBot
+                ))
+            val chat = chatInfo.copy(messageList = newMessageList)
+            repository.updateChat(
+                chat
             )
-            ).toInt()
 
-            val temp = _chatListState.value.toMutableList()
-            Log.d("MASHA", temp.toString())
-            temp.map { if (it.id == chatInfo.id) {
-                it.messageList += Message(newId, chatInfo.id, message, isBot)
-            } }
-            Log.d("MASHA", temp.toString())
-            _chatListState.update {
-                temp
+            _chatListState.update { currentChatList ->
+                currentChatList.map { chatItem ->
+                    if (chatItem.id == chatInfo.id) {
+                        chat.copy(messageList = newMessageList)
+                    } else {
+                        chatItem
+                    }
+                }
             }
         }
         }
@@ -91,18 +112,19 @@ class ChatViewModel(private val repository: MessageRepository) : ViewModel() {
             repository
                 .sendQuestion(message)
                 .stateIn(scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5_000),
+                    started = SharingStarted.WhileSubscribed(5_0000000000),
                     Result.Loading(Unit)
                 ).collect {
                     when (it) {
                         is Result.Success<*> -> {
-                            val finalData = it.value as String
-                            saveMessage(chatInfo, finalData, true)
+                            val finalData = it.value as ServerResponse
+                            saveMessage(chatInfo, finalData.text, true)
                             _isError.update { false }
                             _isLoading.update { false }
                         }
                         is Result.Error -> {
                             _isError.update { true }
+                            _isLoading.update { false }
                         }
                         is Result.Loading -> {
                             _isLoading.update { true }

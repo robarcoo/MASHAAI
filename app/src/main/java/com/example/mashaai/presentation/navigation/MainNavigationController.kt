@@ -38,7 +38,7 @@ fun MainNavigationController(
                 })) { entry ->
                 entry.arguments?.getInt("id").let { id ->
                     if (id != null) {
-                        ChatRoomScreen(id = id)
+                        ChatRoomScreen()
                     }
                 }
             }

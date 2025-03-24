@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.Update
 import androidx.room.Upsert
 import com.example.domain.models.ChatInfo
 import com.example.domain.models.Message
@@ -27,6 +28,6 @@ interface MessageDao {
     fun getChatInfo(id: Int) : Flow<ChatInfo>
     @Insert(entity = ChatInfo::class, onConflict = OnConflictStrategy.REPLACE)
     fun insertChat(chat : ChatInfo)
-    @Insert(entity = Message::class, onConflict = OnConflictStrategy.REPLACE)
-    fun insertMessage(message : Message) : Long
+    @Update(entity = ChatInfo::class)
+    fun updateChat(chat: ChatInfo)
 }
