@@ -1,5 +1,6 @@
 package com.example.domain.models
 
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -13,7 +14,7 @@ data class ChatInfo(
     val image: Int? = null,
     val name : String,
     @ColumnInfo(name="message_list")
-    var messageList: List<Message> = emptyList()
+    var messageList: List<Message> = SnapshotStateList()
 )
 
 
